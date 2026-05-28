@@ -9,7 +9,7 @@ def make_completed(modeladmin, request, queryset):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'completed', 'priority', 'category', 'created_at']
+    list_display = ['id', 'title', 'completed', 'priority', 'owner', 'category', 'created_at']
 
     list_filter = ['completed', 'priority', 'category']
 
