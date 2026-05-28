@@ -13,13 +13,14 @@ class TaskSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    owner = serializers.ReadOnlyField(source='owner.username')
     # TODO что такое ОРМ DJANGO и как относится к сериалайзеру
     class Meta:
         model = Task
         fields = [
             'id', 'title', 'description', 'completed',
             'priority', 'category', 'category_id',
-            'created_at', 'updated_at',
+            'created_at', 'updated_at', 'owner'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
     def validate_title(self, value):
