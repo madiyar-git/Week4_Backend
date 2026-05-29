@@ -1,5 +1,7 @@
 # Секреты
 .env
+*.env.local
+.env.*
 
 # База данных
 db.sqlite3
