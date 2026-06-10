@@ -14,7 +14,6 @@ class TaskSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     owner = serializers.ReadOnlyField(source='owner.username')
-    # TODO что такое ОРМ DJANGO и как относится к сериалайзеру
     class Meta:
         model = Task
         fields = [

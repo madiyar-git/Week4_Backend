@@ -3,7 +3,7 @@ from .models import Task
 from .serializers import TaskSerializer
 from rest_framework import permissions
 
-
+#TODO таблицы в БД
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TaskSerializer
