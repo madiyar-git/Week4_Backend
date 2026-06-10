@@ -1,9 +1,16 @@
 from rest_framework import serializers
-from .models import Task, Category
+from .models import Task, Category, Tag
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug']
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['id', 'name', 'color', 'owner', 'created_at']
+        read_only_fields = ['id', 'created_at', 'owner']
+
 class TaskSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
@@ -14,14 +21,25 @@ class TaskSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     owner = serializers.ReadOnlyField(source='owner.username')
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        required=False
+    )
     class Meta:
         model = Task
         fields = [
             'id', 'title', 'description', 'completed',
             'priority', 'category', 'category_id',
-            'created_at', 'updated_at', 'owner'
+            'created_at', 'updated_at', 'owner', 'tags'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['owner', 'id', 'created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['tags'] = TagSerializer(instance.tags.all(), many=True).data
+        return representation
+
     def validate_title(self, value):
         if len(value.strip()) < 3:
             raise serializers.ValidationError("Title must be at least 3 characters")

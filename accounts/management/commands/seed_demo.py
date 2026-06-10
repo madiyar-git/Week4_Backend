@@ -10,8 +10,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Starting data seeding...'))
         # * удаление заданий
-        # self.stdout.write(self.style.ERROR('Deleting old task...'))
-        # Task.objects.all().delete()
+        self.stdout.write(self.style.ERROR('Deleting old task...'))
+        Task.objects.all().delete()
 
         user1, created1 = User.objects.get_or_create(username='user1', email='user1@example.com')
         if created1:

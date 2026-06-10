@@ -8,6 +8,17 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class Tag(models.Model):
+    name = models.CharField(max_length=100)
+    color = models.CharField(max_length=7, default='#1DB954')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tag' )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [['name', 'owner']]
+
+    def __str__(self):
+        return f"{self.name}({self.owner.username})"
 
 class Task(models.Model):
     owner = models.ForeignKey(
@@ -22,6 +33,7 @@ class Task(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True, blank=True
     )
+    tags = models.ManyToManyField(Tag, blank=True, related_name='tasks')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
