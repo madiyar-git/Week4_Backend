@@ -1,7 +1,11 @@
-from rest_framework import viewsets
+from django.db import models, connection
+from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from .models import Task, Tag
 from .serializers import TaskSerializer, TagSerializer
-from rest_framework import permissions
+
 
 class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -12,6 +16,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -30,3 +35,37 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='stats')
+    def stats(self, request):
+        user = request.user
+
+        orm_stats = Task.objects.filter(owner=user).aggregate(
+            total=models.Count('id'),
+            completed_tasks=models.Count('id', filter=models.Q(completed=True)),
+            active=models.Count('id', filter=models.Q(completed=False))
+        )
+
+        raw_query = """
+            SELECT 
+                COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE completed = TRUE) AS completed,
+                COUNT(*) FILTER (WHERE completed = FALSE) AS active
+            FROM tasks_task
+            WHERE owner_id = %s;
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_query, (user.id,))
+            row = cursor.fetchone()
+
+            raw_stats = {
+                'total': row[0],
+                'completed_tasks': row[1],
+                'active': row[2]
+            }
+
+        return Response({
+            'orm': orm_stats,
+            'raw': raw_stats
+        })
