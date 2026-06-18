@@ -53,3 +53,6 @@ class Task(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["owner", "completed"], name="task_owner_completed_idx")
+        ]

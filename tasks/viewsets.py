@@ -23,12 +23,16 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
-        qs = Task.objects.filter(owner=self.request.user)
-        completed = self.request.query_params.get('completed')
+        qs = (
+            Task.objects.filter(owner=self.request.user)
+            .select_related("owner")
+            .prefetch_related("tags")
+        )
+        completed = self.request.query_params.get("completed")
         if completed is not None:
-            qs = qs.filter(completed=completed.lower() == 'true')
+            qs = qs.filter(completed=completed.lower() == "true")
 
-        tag_id = self.request.query_params.get('tag')
+        tag_id = self.request.query_params.get("tag")
         if tag_id:
             qs = qs.filter(tags__id=tag_id)
         return qs.distinct()
@@ -36,14 +40,14 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
-    @action(detail=False, methods=['get'], url_path='stats')
+    @action(detail=False, methods=["get"], url_path="stats")
     def stats(self, request):
         user = request.user
 
         orm_stats = Task.objects.filter(owner=user).aggregate(
-            total=models.Count('id'),
-            completed_tasks=models.Count('id', filter=models.Q(completed=True)),
-            active=models.Count('id', filter=models.Q(completed=False))
+            total=models.Count("id"),
+            completed_tasks=models.Count("id", filter=models.Q(completed=True)),
+            active=models.Count("id", filter=models.Q(completed=False)),
         )
 
         raw_query = """
@@ -59,13 +63,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             cursor.execute(raw_query, (user.id,))
             row = cursor.fetchone()
 
-            raw_stats = {
-                'total': row[0],
-                'completed_tasks': row[1],
-                'active': row[2]
-            }
+            raw_stats = {"total": row[0], "completed_tasks": row[1], "active": row[2]}
 
-        return Response({
-            'orm': orm_stats,
-            'raw': raw_stats
-        })
+        return Response({"orm": orm_stats, "raw": raw_stats})
