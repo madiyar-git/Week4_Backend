@@ -24,7 +24,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = (
-            Task.objects.filter(owner=self.request.user)
+            Task.objects.filter(owner=self.request.user)  # *
             .select_related("owner")
             .prefetch_related("tags")
         )
