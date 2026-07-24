@@ -21,12 +21,13 @@ from django.urls import path, include
 from drf_spectacular.views import (SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView, )
 from rest_framework_simplejwt.views import (TokenRefreshView, TokenVerifyView, )
 
-from accounts.views import LimiterTokenObtainPairView
+from accounts.views import LimiterTokenObtainPairView, SecurityTestView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("tasks.urls")),
     path("api/token/", LimiterTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/security-test/", SecurityTestView.as_view(), name="security_test"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("api/", include("accounts.urls")),
