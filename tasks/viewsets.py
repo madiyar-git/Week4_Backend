@@ -64,7 +64,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         with connection.cursor() as cursor:
             cursor.execute(raw_query, (user.id,))
             row = cursor.fetchone()
-
             raw_stats = {"total": row[0], "completed_tasks": row[1], "active": row[2]}
 
         return Response({"orm": orm_stats, "raw": raw_stats})
