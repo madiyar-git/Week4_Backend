@@ -22,12 +22,12 @@ class TagViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TaskSerializer
-    queryset = Task.objects.all()
+    # queryset = Task.objects.all()
 
     def get_queryset(self):
         queryset = (
             Task.objects.filter(owner=self.request.user)
-            .select_related("owner")
+            .select_related("owner", "category")
             .prefetch_related("tags")
         )
         completed = self.request.query_params.get("completed")

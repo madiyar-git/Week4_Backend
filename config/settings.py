@@ -75,8 +75,10 @@ CORS_PREFLIGHT_FAIL_STRICT = True
 if DEBUG:
     if "debug_toolbar" not in INSTALLED_APPS:
         INSTALLED_APPS += ["debug_toolbar"]
-    MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
-INTERNAL_IPS = ["127.0.0.1", "localhost"]
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
+    }
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
