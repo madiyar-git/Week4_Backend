@@ -1,10 +1,17 @@
 from django.db import models, connection
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, filters
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from .models import Task, Tag
 from .serializers import TaskSerializer, TagSerializer
+
+
+class TaskPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 50
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -20,16 +27,27 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     serializer_class = TaskSerializer
-    # queryset = Task.objects.all()
+    pagination_class = TaskPagination
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ["created_at", "priority", "completed", "title"]
+    ordering = ["-created_at"]
+    search_fields = ["title", "description"]
 
     def get_queryset(self):
+        # queryset = (
+        #     Task.objects.filter(owner=self.request.user)
+        #     .select_related("owner", "category")
+        #     .prefetch_related("tags")
+        # )
         queryset = (
-            Task.objects.filter(owner=self.request.user)
+            Task.objects.filter()
             .select_related("owner", "category")
             .prefetch_related("tags")
         )
+        # queryset = Task.objects.all()
         completed = self.request.query_params.get("completed")
         if completed is not None:
             queryset = queryset.filter(completed=completed.lower() == "true")
