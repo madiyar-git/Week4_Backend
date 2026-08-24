@@ -27,8 +27,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = TaskSerializer
     pagination_class = TaskPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -37,17 +36,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "description"]
 
     def get_queryset(self):
-        # queryset = (
-        #     Task.objects.filter(owner=self.request.user)
-        #     .select_related("owner", "category")
-        #     .prefetch_related("tags")
-        # )
         queryset = (
-            Task.objects.filter()
+            Task.objects.filter(owner=self.request.user)
             .select_related("owner", "category")
             .prefetch_related("tags")
         )
-        # queryset = Task.objects.all()
+
         completed = self.request.query_params.get("completed")
         if completed is not None:
             queryset = queryset.filter(completed=completed.lower() == "true")
