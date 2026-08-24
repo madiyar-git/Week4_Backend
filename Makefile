@@ -2,35 +2,35 @@
 
 .DEFAULT_GOAL := help
 
-help:
-	@echo "Доступные команды:"
+help: ## Show all commands
+	@echo "All commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-up:
+up: ## Start containers
 	docker compose up -d
 
-down:
+down: ## Stop and remove containers
 	docker compose down
 
-build:
+build: ## Rebuild project images
 	docker compose build
 
-restart: down up
+restart: down up ## Restart containers (down + up)
 
-migrate:
+migrate: ## Run Django database migrations
 	docker compose exec web python manage.py migrate
 
-superuser:
+superuser: ## Create Django superuser
 	docker compose exec web python manage.py createsuperuser
 
-shell:
+shell: ## Open Django interactive shell
 	docker compose exec web python manage.py shell
 
-logs:
+logs: ## View container logs in real time
 	docker compose logs -f
 
-ps:
+ps: ## Display status of containers
 	docker compose ps
 
-clean-all:
+clean-all: ## Remove containers, volumes (DB), and local images
 	docker compose down -v --rmi local

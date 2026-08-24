@@ -42,17 +42,135 @@ source venv/bin/activate
 ```bash
 cp .env.example .env
 ```
-## Установка PostgreSQL
-### 1. Запуск БД в Docker 
+
+> 💡 Настройки по умолчанию в `.env` уже подготовлены для локального запуска.
+
+### 3. Запуск контейнеров
+
+Запустите сборку и все необходимые сервисы:
+
+```bash
+make up
 ```
-docker run --name pg-internship -e POSTGRES_PASSWORD=<password> -e POSTGRES_USER=internship -e POSTGRES_DB=internship_dev -p 5433:5432 -d postgres:16
+
+Если команда `make` недоступна, используйте:
+
+```bash
+docker compose up -d --build
 ```
-### 2. Миграции и создание админа 
+
+### 4. Подготовка базы данных
+
+Примените миграции:
+
+```bash
+make migrate
 ```
-python manage.py migrate
-python manage.py createsuperuser
+
+Создайте администратора:
+
+```bash
+make superuser
 ```
-### 3. Наполнение демо-данными
+
+Следуйте инструкциям в терминале и укажите логин, email и пароль.
+
+При необходимости можно заполнить базу демонстрационными данными:
+
+```bash
+docker compose exec web python manage.py seed_demo
+```
+
+🎉 **Готово! Проект запущен и готов к работе.**
+
+---
+
+## 🌐 Доступ к приложению
+
+После запуска сервисы доступны по следующим адресам:
+
+| Сервис              | URL                                                                |
+|---------------------|--------------------------------------------------------------------|
+| 🖥 **Frontend**     | [http://localhost:5173](http://localhost:5173)                     |
+| ⚙️ **Backend API**  | [http://localhost:8000/api/](http://localhost:8000/api/)           |
+| 📚 **Swagger UI**   | [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/) |
+| 🔐 **Django Admin** | [http://localhost:8000/admin/](http://localhost:8000/admin/)       |
+
+---
+
+## 🛠 Основные команды
+
+При наличии `make` можно использовать следующие команды:
+
+| Команда          | Описание                                         | Эквивалент без Make                                        |
+|------------------|--------------------------------------------------|------------------------------------------------------------|
+| `make up`        | Запускает все сервисы в фоне                     | `docker compose up -d`                                     |
+| `make down`      | Останавливает и удаляет контейнеры               | `docker compose down`                                      |
+| `make restart`   | Перезапускает контейнеры                         | `docker compose restart`                                   |
+| `make logs`      | Показывает логи всех сервисов в реальном времени | `docker compose logs -f`                                   |
+| `make migrate`   | Применяет миграции базы данных                   | `docker compose exec web python manage.py migrate`         |
+| `make superuser` | Создаёт администратора                           | `docker compose exec web python manage.py createsuperuser` |
+| `make ps`        | Показывает статус контейнеров                    | `docker compose ps`                                        |
+
+---
+
+## 📡 API
+
+Полная интерактивная документация API доступна через **Swagger UI**:
+
+[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+
+### 🔑 Аутентификация
+
+| Метод  | Endpoint              | Описание                                                 |
+|--------|-----------------------|----------------------------------------------------------|
+| `POST` | `/api/register/`      | Регистрация нового пользователя                          |
+| `POST` | `/api/token/`         | Авторизация и получение JWT `access` и `refresh` токенов |
+| `POST` | `/api/token/refresh/` | Обновление `access`-токена                               |
+
+### 📝 Задачи
+
+Для работы с задачами требуется JWT-аутентификация:
+
+```http
+Authorization: Bearer <token>
+```
+
+| Метод    | Endpoint            | Описание                                    |
+|----------|---------------------|---------------------------------------------|
+| `GET`    | `/api/tasks/`       | Получить список задач текущего пользователя |
+| `POST`   | `/api/tasks/`       | Создать новую задачу                        |
+| `GET`    | `/api/tasks/<id>/`  | Получить информацию о задаче                |
+| `PATCH`  | `/api/tasks/<id>/`  | Обновить задачу                             |
+| `DELETE` | `/api/tasks/<id>/`  | Удалить задачу                              |
+| `GET`    | `/api/tasks/stats/` | Получить статистику по задачам              |
+
+Через `PATCH` можно, например, изменить:
+
+* статус выполнения;
+* приоритет;
+* заголовок задачи.
+
+---
+
+## ❓ Troubleshooting
+
+### 1. `ports are allocated` / `port is already allocated`
+
+**Проблема:** порт `8000` или `5432` уже используется другой программой, например локальным PostgreSQL.
+
+**Решение:** остановите конфликтующий сервис или освободите порт.
+
+#### Windows PowerShell
+
+```powershell
+Stop-Service postgresql*
+```
+
+#### Linux / macOS
+
+```bash
+sudo service postgresql stop
 ```
 python manage.py seed_demo
 ```

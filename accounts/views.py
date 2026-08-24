@@ -27,18 +27,8 @@ class SecurityTestView(APIView):
     def post(self, request):
         username_input = request.data.get("username", "")
         query = f"SELECT id, username, password FROM auth_user WHERE username = '{username_input}'"
-        # query = "SELECT id, username FROM auth_user WHERE username = %s"
 
         with connection.cursor() as cursor:
             cursor.execute(query)
-            # cursor.execute(query, [username_input])
             rows = cursor.fetchall()
         return Response({"result": rows})
-
-
-# @extend_schema(exclude=True)
-# class SecurityTestView(APIView):
-#     def post(self, request):
-#         username_input = request.data.get("username")
-#         users = User.objects.filter(username=username_input).values("id", "username")
-#         return Response({"result": list(users)})
