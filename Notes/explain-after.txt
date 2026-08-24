@@ -1,0 +1,6 @@
+Index Scan using task_owner_completed_idx on tasks_task  (cost=0.29..418.80 rows=260 width=127) (actual time=0.048..0.149 rows=236 loops=1)
+  Index Cond: ((owner_id = 42) AND (completed = true))
+Planning Time: 0.284 ms
+Execution Time: 0.180 ms
+
+EXPLAIN ANALYZE SELECT * FROM tasks_task WHERE owner_id = 42 AND completed = TRUE;

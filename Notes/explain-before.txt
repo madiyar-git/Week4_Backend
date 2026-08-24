@@ -1,0 +1,6 @@
+Limit  (cost=0.00..1.06 rows=1 width=104) (actual time=0.171..0.172 rows=0 loops=1)
+  ->  Seq Scan on tasks_task  (cost=0.00..1.06 rows=1 width=104) (actual time=0.170..0.170 rows=0 loops=1)
+        Filter: (completed AND (owner_id = 42))
+        Rows Removed by Filter: 21
+Planning Time: 1.253 ms
+Execution Time: 0.209 ms

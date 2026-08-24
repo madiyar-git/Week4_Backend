@@ -5,6 +5,8 @@
 
 # База данных
 db.sqlite3
+*.sqlite3-journal
+*.sqlite3
 
 # Файлы кэша и виртуальное окружение
 __pycache__/
