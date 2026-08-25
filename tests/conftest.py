@@ -1,6 +1,7 @@
 import pytest
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
+
+from tests.factories import UserFactory, TaskFactory
 
 
 @pytest.fixture(autouse=True)
@@ -11,17 +12,27 @@ def disable_debug_toolbar(settings):
     ]
 
 
-User = get_user_model()
+@pytest.fixture
+def api_client():
+    return APIClient()
 
 
 @pytest.fixture
-def test_user(db):
-    return User.objects.create_user(username="test_user", password="password123")
+def user(db):
+    return UserFactory()
 
 
 @pytest.fixture
-def auth_client(test_user):
-    client = APIClient()
-    client.force_login(test_user)
-    client.force_authenticate(user=test_user)
-    return client
+def other_user(db):
+    return UserFactory()
+
+
+@pytest.fixture
+def auth_client(api_client, user):
+    api_client.force_authenticate(user=user)
+    return api_client
+
+
+@pytest.fixture
+def tasks(user):
+    return TaskFactory.create_batch(3, owner=user)
