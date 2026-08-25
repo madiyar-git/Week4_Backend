@@ -21,3 +21,4 @@ class TaskFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=3)
     description = factory.Faker("text")
     owner = factory.SubFactory(UserFactory)
+    # id = factory.Sequence(lambda n: n + 1)
