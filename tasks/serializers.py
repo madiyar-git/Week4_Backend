@@ -74,5 +74,11 @@ class TaskSerializer(serializers.ModelSerializer):
 
             if priority_word in word_to_num:
                 internal_data["priority"] = word_to_num[priority_word]
+            else:
+                raise serializers.ValidationError(
+                    {
+                        "priority": "Invalid priority level. Must be 'low', 'medium', or 'high'."
+                    }
+                )
 
         return internal_data
