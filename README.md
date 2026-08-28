@@ -371,3 +371,7 @@ Authorization: Bearer <access_token>
 * мониторинг и логирование.
 
 ---
+
+## 🧪 Запуск тестов
+
+* **Backend (в Docker):** `make test`
