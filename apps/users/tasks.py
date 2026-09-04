@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 import requests
 from celery import shared_task
@@ -6,6 +7,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.utils import timezone
 from requests.exceptions import RequestException
 
 logger = logging.getLogger(__name__)
@@ -93,7 +95,6 @@ def send_welcome_email_idempotent(self, user_id: int):
         return True
 
     except RequestException as exc:
-        # В случае ошибки удаляем ключ из кэша, чтобы ретрай мог попробовать снова
         cache.delete(cache_key)
         countdown = 2**self.request.retries
         logger.warning(
@@ -127,3 +128,22 @@ def fetch_external_status_declarative(self):
     response = requests.get("https://httpbin.org/status/500", timeout=3)
     response.raise_for_status()
     return response.status_code
+
+
+@shared_task
+def cleanup_expired_tasks() -> int:
+
+    Task = apps.get_model("tasks", "Task")
+    cutoff_date = timezone.now() - timedelta(days=30)
+
+    expired_qs = Task.objects.filter(status="completed", updated_at__lt=cutoff_date)
+
+    deleted_count, details = expired_qs.delete()
+
+    logger.info(
+        "Cleanup completed. Deleted %d expired tasks (cutoff: %s). Details: %s",
+        deleted_count,
+        cutoff_date.strftime("%Y-%m-%d %H:%M:%S"),
+        details,
+    )
+    return deleted_count

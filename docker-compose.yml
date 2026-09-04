@@ -58,6 +58,19 @@ services:
       redis:
         condition: service_healthy
 
+  celery-beat:
+    build: .
+    command: celery -A config beat -l info
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings  # Укажите ваш модуль настроек (например, core.settings)
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
 volumes:
   pgdata:
   redis_data:
