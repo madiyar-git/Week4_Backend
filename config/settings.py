@@ -169,13 +169,23 @@ LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "Asia/Almaty"
 
 
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+_broker_url = os.getenv("CELERY_BROKER_URL")
+
+if "?" not in _broker_url:
+    CELERY_BROKER_URL = f"{_broker_url}?socket_timeout=1.0&socket_connect_timeout=1.0&retry_on_timeout=false"
+else:
+    CELERY_BROKER_URL = _broker_url
+
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
+CELERY_TASK_PUBLISH_RETRY = False
+CELERY_BROKER_CONNECTION_TIMEOUT = 1.0
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 1
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 USE_I18N = True
 
 USE_TZ = True
