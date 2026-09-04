@@ -375,3 +375,48 @@ Authorization: Bearer <access_token>
 ## 🧪 Запуск тестов
 
 * **Backend (в Docker):** `make test`
+
+## ⚙️ Фоновые задачи (Celery + Redis)
+
+Для обработки долгих и асинхронных операций в проекте используются **Celery** и **Redis** (брокер сообщений).
+
+### 🚀 Запуск и работа
+
+Все сервисы фоновых задач запускаются автоматически вместе со всем стеком:
+
+```bash
+make up
+# или: docker compose up -d
+```
+
+### 📋 Как смотреть логи
+
+Чтобы отслеживать выполнение фоновых задач в реальном времени или диагностировать ошибки:
+
+* **Логи воркера Celery (выполнение задач):**
+  ```bash
+  docker compose logs -f celery
+  ```
+* **Логи брокера Redis:**
+  ```bash
+  docker compose logs -f redis
+  ```
+* **Общие логи всех сервисов:**
+  ```bash
+  make logs
+  ```
+
+### 🧪 Проверка работы фоновых задач
+
+Убедиться, что задачи доходят до воркера, можно через Django Shell:
+
+1. Запустите интерактивную оболочку:
+   ```bash
+   docker compose exec web python manage.py shell
+   ```
+2. Вызовите тестовую задачу:
+   ```python
+   from config.celery import debug_task
+   debug_task.delay()
+   ```
+3. Проверьте логи воркера (`docker compose logs -f celery`) — там появится запись об успешном выполнении `debug_task`.
