@@ -306,20 +306,6 @@ PATCH /api/tasks/<id>/
 
 ---
 
-### Удалить задачу
+## 🧪 Запуск тестов
 
-```http
-DELETE /api/tasks/<id>/
-```
-
----
-
-# Документация API
-
-### Swagger / ReDoc
-
-```http
-GET /api/docs/
-```
-
-Интерактивная документация API со всеми доступными эндпоинтами.
+* **Backend (в Docker):** `make test`

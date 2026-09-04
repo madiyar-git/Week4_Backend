@@ -56,7 +56,7 @@ class TaskSerializer(serializers.ModelSerializer):
     def validate_title(self, value):
         if len(value.strip()) < 3:
             raise serializers.ValidationError("Title must be at least 3 characters")
-        return value
+        return value.strip()
 
     priority = serializers.SerializerMethodField()
 
@@ -74,5 +74,11 @@ class TaskSerializer(serializers.ModelSerializer):
 
             if priority_word in word_to_num:
                 internal_data["priority"] = word_to_num[priority_word]
+            else:
+                raise serializers.ValidationError(
+                    {
+                        "priority": "Invalid priority level. Must be 'low', 'medium', or 'high'."
+                    }
+                )
 
         return internal_data

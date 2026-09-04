@@ -13,3 +13,10 @@ __pycache__/
 venv/
 *.pyc
 .idea/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+*.lcov
+.pytest_cache/

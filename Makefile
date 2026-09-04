@@ -34,3 +34,12 @@ ps: ## Display status of containers
 
 clean-all: ## Remove containers, volumes (DB), and local images
 	docker compose down -v --rmi local
+
+test: ## Run tests with terminal coverage report
+	docker compose exec web pytest --cov=. --cov-report=term-missing --reuse-db
+
+test-html: ## Run tests and generate HTML coverage report
+	docker compose exec web pytest --cov=. --cov-report=html --reuse-db
+
+test-fast: ## Run tests in parallel without coverage
+	docker compose exec web pytest -n auto --reuse-db
