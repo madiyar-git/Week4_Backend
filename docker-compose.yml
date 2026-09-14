@@ -64,12 +64,25 @@ services:
     volumes:
       - .:/app
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings  # Укажите ваш модуль настроек (например, core.settings)
+      - DJANGO_SETTINGS_MODULE=config.settings
     env_file:
       - .env
     depends_on:
       - redis
       - db
+
+  flower:
+    build: .
+    command: celery -A config flower --port=5555 --basic_auth=admin:adminpass
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    depends_on:
+      - redis
+      - celery
 
 volumes:
   pgdata:

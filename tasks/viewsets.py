@@ -79,7 +79,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         )
 
         raw_query = """
-            SELECT 
+            SELECT
                 COUNT(*) AS total,
                 COUNT(*) FILTER (WHERE completed = TRUE) AS completed,
                 COUNT(*) FILTER (WHERE completed = FALSE) AS active

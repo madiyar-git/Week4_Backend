@@ -60,7 +60,6 @@ def send_welcome_email_idempotent(self, user_id: int):
     request_id = self.request.id
     attempt = self.request.retries + 1
 
-    # 1. Проверяем флаг идемпотентности в Redis
     cache_key = f"welcome_email_sent:{user_id}"
     if cache.get(cache_key):
         logger.info(
@@ -86,7 +85,6 @@ def send_welcome_email_idempotent(self, user_id: int):
     )
 
     try:
-        # 2. Фиксируем успешную отправку в кэш (например, на 24 часа)
         cache.set(cache_key, True, timeout=86400)
 
         logger.info(
