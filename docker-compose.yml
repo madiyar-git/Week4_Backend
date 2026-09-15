@@ -3,15 +3,17 @@ services:
     build: .
     container_name: django_web
     ports:
-      - "8000:8000"
+      - "8001:8000"
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
-  
+
   db:
     image: postgres:16
     container_name: postgres_db
@@ -27,5 +29,61 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis_broker
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  celery:
+    build: .
+    container_name: celery_worker
+    command: celery -A config worker -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-beat:
+    build: .
+    command: celery -A config beat -l info
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
+  flower:
+    build: .
+    command: celery -A config flower --port=5555 --basic_auth=admin:adminpass
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    depends_on:
+      - redis
+      - celery
+
 volumes:
   pgdata:
+  redis_data:

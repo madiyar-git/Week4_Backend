@@ -1,12 +1,16 @@
-import requests
+import logging
+
 from django.db import models, connection
 from rest_framework import permissions, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from apps.users.tasks import send_task_created_notification
 from .models import Task, Tag
 from .serializers import TaskSerializer, TagSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class TaskPagination(PageNumberPagination):
@@ -52,21 +56,17 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__id=tag_id)
         return queryset.distinct()
 
-    @staticmethod
-    def send_task_created_notification(task_title: str) -> bool:
-        response = requests.post(
-            "https://api.example.com/notify",
-            json={"text": f"New task created: {task_title}"},
-            timeout=5,
-        )
-        return response.status_code == 200
-
     def perform_create(self, serializer):
         task = serializer.save(owner=self.request.user)
+
         try:
-            self.send_task_created_notification(task.title)
-        except Exception:
-            pass
+            send_task_created_notification.apply_async(args=[task.id], retry=False)
+        except Exception as exc:
+            logger.error(
+                "Failed to send task to Celery for task_id=%s: %s",
+                task.id,
+                exc,
+            )
 
     @action(detail=False, methods=["get"], url_path="stats")
     def stats(self, request):
@@ -79,7 +79,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         )
 
         raw_query = """
-            SELECT 
+            SELECT
                 COUNT(*) AS total,
                 COUNT(*) FILTER (WHERE completed = TRUE) AS completed,
                 COUNT(*) FILTER (WHERE completed = FALSE) AS active
