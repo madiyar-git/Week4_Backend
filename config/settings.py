@@ -16,6 +16,7 @@ from pathlib import Path
 
 import dj_database_url
 import environ
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -186,6 +187,19 @@ CELERY_TASK_PUBLISH_RETRY = False
 CELERY_BROKER_CONNECTION_TIMEOUT = 1.0
 CELERY_BROKER_CONNECTION_MAX_RETRIES = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-expired-tasks-every-5-min": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": 10.0,
+    },
+    "cleanup-expired-tasks-daily-nightly": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
+
 USE_I18N = True
 
 USE_TZ = True
