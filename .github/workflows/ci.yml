@@ -30,6 +30,7 @@ jobs:
       DATABASE_URL: 'postgres://test_user:test_password@localhost:5432/test_db'
       CELERY_BROKER_URL: 'redis://localhost:6379/0'
       REDIS_URL: 'redis://localhost:6379/0'
+      CORS_ALLOWED_ORIGINS: 'http://localhost:3000,http://127.0.0.1:3000'
       POSTGRES_DB: test_db
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
