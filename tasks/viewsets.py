@@ -1,6 +1,6 @@
 import logging
 
-from django.db import models, connection
+from django.db import models, connection, transaction
 from rest_framework import permissions, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -59,14 +59,17 @@ class TaskViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         task = serializer.save(owner=self.request.user)
 
-        try:
-            send_task_created_notification.apply_async(args=[task.id], retry=False)
-        except Exception as exc:
-            logger.error(
-                "Failed to send task to Celery for task_id=%s: %s",
-                task.id,
-                exc,
-            )
+        def send_notification():
+            try:
+                send_task_created_notification.apply_async(args=[task.id], retry=False)
+            except Exception as exc:
+                logger.error(
+                    "Failed to send task to Celery for task_id=%s: %s",
+                    task.id,
+                    exc,
+                )
+
+        transaction.on_commit(send_notification)
 
     @action(detail=False, methods=["get"], url_path="stats")
     def stats(self, request):
