@@ -2,27 +2,28 @@ from unittest.mock import patch
 
 from rest_framework import status
 
-from apps.users.tasks import send_task_created_notification
 
-
-@patch.object(send_task_created_notification, "delay")
-@patch.object(send_task_created_notification, "apply_async")
-def test_outer_request(mock_apply_async, mock_delay, auth_client):
+@patch("tasks.viewsets.send_task_created_notification")
+def test_outer_request(
+    mock_service, auth_client, django_capture_on_commit_callbacks
+):
     payload = {"title": "Hello", "priority": "high", "completed": False}
-    response = auth_client.post("/api/tasks/", data=payload, format="json")
+    with django_capture_on_commit_callbacks(execute=True):
+        response = auth_client.post("/api/tasks/", data=payload, format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
-    # Проверяем, что таска Celery была вызвана через .delay() или .apply_async()
-    assert mock_delay.called or mock_apply_async.called
+    mock_service.apply_async.assert_called_once()
 
 
-@patch.object(send_task_created_notification, "delay")
-@patch.object(send_task_created_notification, "apply_async")
-def test_outer_request_failure_returns_201(mock_apply_async, mock_delay, auth_client):
-    mock_delay.side_effect = Exception("Connection error")
-    mock_apply_async.side_effect = Exception("Connection error")
+@patch("tasks.viewsets.send_task_created_notification")
+def test_outer_request_failure_returns_201(
+    mock_service, auth_client, django_capture_on_commit_callbacks
+):
+    mock_service.apply_async.side_effect = Exception("Connection error")
 
     payload = {"title": "Hello", "priority": "high", "completed": False}
-    response = auth_client.post("/api/tasks/", data=payload, format="json")
+
+    with django_capture_on_commit_callbacks(execute=True):
+        response = auth_client.post("/api/tasks/", data=payload, format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
