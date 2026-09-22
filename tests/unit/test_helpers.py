@@ -14,4 +14,4 @@ def test_validation_negative_case_400():
     payload = {"title": "                  Va                   "}
     with pytest.raises(serializers.ValidationError) as exc_info:
         response = TaskSerializer.validate_title(value=payload["title"], self=payload)
-    assert "Title must be at least 6 7 characters" in str(exc_info.value)
+    assert "Title must be at least 3 characters" in str(exc_info.value)
