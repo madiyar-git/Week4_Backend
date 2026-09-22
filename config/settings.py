@@ -11,11 +11,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
 import environ
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,6 +93,10 @@ else:
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
+
+if "pytest" in sys.modules or "test" in sys.argv:
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
 
 ROOT_URLCONF = "config.urls"
 
@@ -186,6 +192,19 @@ CELERY_TASK_PUBLISH_RETRY = False
 CELERY_BROKER_CONNECTION_TIMEOUT = 1.0
 CELERY_BROKER_CONNECTION_MAX_RETRIES = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-expired-tasks-every-5-min": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": 10.0,
+    },
+    "cleanup-expired-tasks-daily-nightly": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
+
 USE_I18N = True
 
 USE_TZ = True

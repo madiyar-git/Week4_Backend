@@ -1,13 +1,13 @@
 [![CI Pipeline](https://github.com/madiyar-git/Week4_Backend/actions/workflows/ci.yml/badge.svg)](https://github.com/madiyar-git/Week4_Backend/actions/workflows/ci.yml)
 
-# Task Manager API (Backend)
+# 🚀 Task Management Application
 
 Полнофункциональное веб-приложение для управления задачами с **Kanban-доской**, фильтрацией по тегам и категориям, *
 *JWT-аутентификацией**, фоновой обработкой задач и аналитикой.
 
 ---
 
-# Стек технологий
+## 🛠 Стек технологий
 
 * **Backend:** Python 3.11+, Django, Django REST Framework (DRF), SimpleJWT
 * **Frontend:** Vue 3, Vite, TypeScript, Pinia, Vue Router
@@ -17,14 +17,32 @@
 
 ---
 
-# Локальный запуск проекта
+## 📋 Требования
 
 Устанавливать Python, Node.js, PostgreSQL или Redis локально **не требуется** — все сервисы запускаются внутри
 Docker-контейнеров.
 
-### 1. Настройка окружения
+Перед началом работы необходимо установить:
 
-Создайте файл переменных окружения из шаблона:
+1. [Git](https://git-scm.com/)
+2. [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+> **Важно:** перед запуском проекта убедитесь, что Docker Desktop запущен.
+
+---
+
+## ⚡️ Быстрый запуск
+
+### 1. Клонирование репозитория
+
+```bash
+git clone <URL_РЕПОЗИТОРИЯ>
+cd <ИМЯ_ПАПКИ_ПРОЕКТА>
+```
+
+### 2. Создание файла `.env`
+
+Скопируйте готовый шаблон переменных окружения:
 
 ```bash
 cp .env.example .env
@@ -33,7 +51,7 @@ cp .env.example .env
 > 💡 Настройки по умолчанию в `.env` уже подготовлены для локального запуска всех сервисов, включая Redis, Celery и
 > Flower.
 
-### 2. Запуск контейнеров
+### 3. Запуск контейнеров
 
 Запустите сборку и все сервисы (Web, Frontend, Database, Redis, Worker, Beat, Flower):
 
@@ -47,7 +65,7 @@ make up
 docker compose up -d --build
 ```
 
-### 3. Подготовка базы данных
+### 4. Подготовка базы данных
 
 Примените миграции:
 
@@ -170,7 +188,7 @@ docker compose logs -f redis
 
 ### 4. Тестирование Celery-задач
 
-Тесты Celery-задач выполняются изолированно:
+Тесты Celery-задач выполняются изолированно (с использованием `unittest.mock` и кэша):
 
 ```bash
 docker compose exec web pytest tests/unit/test_celery_tasks.py
@@ -180,9 +198,10 @@ docker compose exec web pytest tests/unit/test_celery_tasks.py
 
 ## 📡 API & Аутентификация
 
-Документация Swagger UI: [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+Полная интерактивная документация доступна в **Swagger UI
+**: [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
 
-Для авторизации используется **JWT (JSON Web Token)**. Передавайте `access`-токен в заголовке запроса:
+Для авторизации используется **JWT (JSON Web Token)**. Передавайте полученный `access`-токен в заголовке запроса:
 
 ```http
 Authorization: Bearer <access_token>
@@ -201,6 +220,36 @@ Authorization: Bearer <access_token>
 
 ---
 
+## ❓ Troubleshooting
+
+### 1. `ports are allocated` / `port is already allocated`
+
+**Проблема:** Порт `8000`, `5432` или `6379` занят другой локальной службой.
+**Решение:** Остановите системный PostgreSQL/Redis или свободный сервис:
+
+* **Windows (PowerShell):** `Stop-Service postgresql*`
+* **Linux/macOS:** `sudo service postgresql stop`
+
+### 2. `FATAL: role "-d" does not exist`
+
+**Проблема:** Отсутствует файл `.env`.
+**Решение:** Пересоздайте `.env` из шаблона:
+
+```bash
+cp .env.example .env
+make restart
+```
+
+### 3. Frontend не подключается к Backend (CORS / SSL Error)
+
+Убедитесь, что в файле `.env` используется протокол `http://`, а не `https://`:
+
+```env
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
+```
+
+---
+
 ## 📁 Структура проекта
 
 ```text
@@ -216,8 +265,8 @@ Authorization: Bearer <access_token>
 │   ├── src/               # Компоненты, Pinia stores, Vue Router
 │   └── Dockerfile         # Dockerfile frontend-сервиса
 │
-├── notes/                 # Архитектурная документация и отчеты
-│   └── ci.md
+├── notes/                 # Архитектурная документация и отчеты (async, ssr)
+│   └── async-and-ssr.md
 ├── .env.example           # Шаблон переменных окружения
 ├── docker-compose.yml     # Оркестрация контейнеров
 ├── Makefile               # Команды автоматизации
@@ -228,7 +277,7 @@ Authorization: Bearer <access_token>
 
 ## 🚀 Production
 
-Для деплоя в Production дополнительно требуется:
+Текущий сетап предназначен для локальной разработки и демонстрации. Для деплоя в Production дополнительно требуется:
 
 * `DEBUG=False` и генерация стойких секретных ключей;
 * Настройка SSL/TLS (HTTPS) и защита портов базы данных и Redis;
