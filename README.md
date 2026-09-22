@@ -7,7 +7,7 @@
 
 ---
 
-## 🛠 Стек технологий
+# Стек технологий
 
 * **Backend:** Python 3.11+, Django, Django REST Framework (DRF), SimpleJWT
 * **Frontend:** Vue 3, Vite, TypeScript, Pinia, Vue Router
@@ -17,32 +17,28 @@
 
 ---
 
-## 📋 Требования
+# Локальный запуск проекта
 
 Устанавливать Python, Node.js, PostgreSQL или Redis локально **не требуется** — все сервисы запускаются внутри
 Docker-контейнеров.
 
-Перед началом работы необходимо установить:
+```bash
+python -m venv venv
+```
 
-1. [Git](https://git-scm.com/)
-2. [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+### Активация для Windows
 
-> **Важно:** перед запуском проекта убедитесь, что Docker Desktop запущен.
+```bash
+venv\Scripts\activate
+```
+
+```bash
+source venv/bin/activate
+```
 
 ---
 
-## ⚡️ Быстрый запуск
-
-### 1. Клонирование репозитория
-
-```bash
-git clone <URL_РЕПОЗИТОРИЯ>
-cd <ИМЯ_ПАПКИ_ПРОЕКТА>
-```
-
-### 2. Создание файла `.env`
-
-Скопируйте готовый шаблон переменных окружения:
+## 2. Установка зависимостей
 
 ```bash
 cp .env.example .env
@@ -244,13 +240,11 @@ make restart
 
 Убедитесь, что в файле `.env` используется протокол `http://`, а не `https://`:
 
-```env
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
-```
+---
 
 ---
 
-## 📁 Структура проекта
+### Обновление access-токена
 
 ```text
 .
@@ -273,7 +267,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
 └── README.md              # Документация проекта
 ```
 
----
+Получение нового access-токена с помощью refresh-токена.
 
 ## 🚀 Production
 
