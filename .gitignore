@@ -20,3 +20,11 @@ venv/
 htmlcov/
 *.lcov
 .pytest_cache/
+
+# Celery Beat
+celerybeat-schedule
+celerybeat-schedule.db
+celerybeat-schedule.dir
+celerybeat-schedule.page
+celerybeat-schedule.bak
+celerybeat-schedule*

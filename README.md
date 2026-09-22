@@ -1,4 +1,6 @@
-# Task Manager API (Backend)
+[![CI Pipeline](https://github.com/madiyar-git/Week4_Backend/actions/workflows/ci.yml/badge.svg)](https://github.com/madiyar-git/Week4_Backend/actions/workflows/ci.yml)
+
+# 🚀 Task Management Application
 
 Полнофункциональное веб-приложение для управления задачами с **Kanban-доской**, фильтрацией по тегам и категориям, *
 *JWT-аутентификацией**, фоновой обработкой задач и аналитикой.
