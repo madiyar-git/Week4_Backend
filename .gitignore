@@ -14,9 +14,13 @@ venv/
 *.pyc
 .idea/
 
-# Coverage reports
+# Coverage reports & pytest
 .coverage
 .coverage.*
 htmlcov/
 *.lcov
 .pytest_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.db
