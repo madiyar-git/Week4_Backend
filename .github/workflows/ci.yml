@@ -103,7 +103,7 @@ jobs:
     name: CD Deployment Simulation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [ backend ]
+    needs: [ backend, docker-build ]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
