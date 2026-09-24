@@ -98,3 +98,23 @@ jobs:
 
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: CD Deployment Simulation
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [ backend-tests ]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ShellCheck Linting
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scans: scripts
+
+      - name: Make Script Executable
+        run: chmod +x scripts/deploy.sh
+
+      - name: Run Deploy Script (Dry Run)
+        run: ./scripts/deploy.sh production --dry-run
