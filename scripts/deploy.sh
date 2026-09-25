@@ -35,7 +35,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-echo "🚀 Starting deployment to environment: [$ENVIRONMENT]"
+echo " Starting deployment to environment: [$ENVIRONMENT]"
 if [ "$DRY_RUN" = true ]; then
     echo "ℹ  RUNNING IN DRY-RUN MODE (No real infrastructure changes will be executed)"
 fi
