@@ -45,7 +45,7 @@ execute_step() {
     local step_name="$1"
     local command="$2"
 
-    echo "▶️ [$step_name]..."
+    echo " [$step_name]..."
     if [ "$DRY_RUN" = true ]; then
         echo "   [DRY-RUN] Would execute: $command"
     else
@@ -74,4 +74,4 @@ else
 fi
 
 echo "--------------------------------------------------------"
-echo "🎉 Deployment to [$ENVIRONMENT] finished successfully!"
+echo " Deployment to [$ENVIRONMENT] finished successfully!"
