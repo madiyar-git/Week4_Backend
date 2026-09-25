@@ -41,7 +41,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    env:
+    secrets:
       SECRET_KEY: 'secret-key-ci-not-for-prod'
       DATABASE_URL: 'postgresql://test_user:test_password@127.0.0.1:5432/test_db'
       CELERY_BROKER_URL: 'redis://127.0.0.1:6379/0'
@@ -103,7 +103,7 @@ jobs:
     name: CD Deployment Simulation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [ backend, docker-build ]
+    Аs: [ backend, docker-build ]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
