@@ -25,9 +25,7 @@ environ.Env.read_env(env_file=str(BASE_DIR / ".env"))
 SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-raw_cors_origins = os.getenv(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000"
-)
+raw_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
 CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip("/")
     for origin in raw_cors_origins.split(",")
@@ -56,16 +54,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tasks",
-    "rest_framework",  # DRF
-    "drf_spectacular",  # Swagger UI
-    "corsheaders",  # CORS
+    "rest_framework",
+    "drf_spectacular",
+    "corsheaders",
     "accounts",
 ]
 
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # for CORS
-    "django.middleware.common.CommonMiddleware",  # for CORS
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
