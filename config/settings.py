@@ -24,12 +24,15 @@ environ.Env.read_env(env_file=str(BASE_DIR / ".env"))
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-raw_cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
+raw_allowed_hosts = os.getenv("ALLOWED_HOSTS")
+ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts.split(",") if host.strip()]
+raw_cors = os.getenv("CORS_ALLOWED_ORIGINS", "")
 CORS_ALLOWED_ORIGINS = [
-    origin.strip().rstrip("/")
-    for origin in raw_cors_origins.split(",")
-    if origin.strip()
+    origin.strip(" '\"").rstrip("/") for origin in raw_cors.split(",") if origin.strip()
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in (
     "true",
