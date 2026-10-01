@@ -130,18 +130,35 @@ def fetch_external_status_declarative(self):
 
 @shared_task
 def cleanup_expired_tasks() -> int:
-
     Task = apps.get_model("tasks", "Task")
     cutoff_date = timezone.now() - timedelta(days=30)
 
     expired_qs = Task.objects.filter(status="completed", updated_at__lt=cutoff_date)
 
+    affected_user_ids = list(expired_qs.values_list("owner_id", flat=True).distinct())
+
     deleted_count, details = expired_qs.delete()
 
+    if affected_user_ids and deleted_count > 0:
+        from services.cache import (
+            bump_user_tasks_version,
+        )
+
+        for user_id in affected_user_ids:
+            try:
+                bump_user_tasks_version(user_id)
+            except Exception as exc:
+                logger.error(
+                    "Failed to bump tasks version for user_id=%s after cleanup: %s",
+                    user_id,
+                    exc,
+                )
+
     logger.info(
-        "Cleanup completed. Deleted %d expired tasks (cutoff: %s). Details: %s",
+        "Cleanup completed. Deleted %d expired tasks (cutoff: %s). Invalidated cache for %d users. Details: %s",
         deleted_count,
         cutoff_date.strftime("%Y-%m-%d %H:%M:%S"),
+        len(affected_user_ids),
         details,
     )
     return deleted_count

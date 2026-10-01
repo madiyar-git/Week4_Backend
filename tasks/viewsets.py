@@ -2,13 +2,12 @@ import logging
 from urllib.parse import urlencode
 
 from django.core.cache import cache
-from django.db import models, connection
 from rest_framework import permissions, viewsets, filters, status
-from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.users.tasks import send_task_created_notification
+from services.cache import (bump_user_tasks_version, generate_tasks_cache_key, get_jittered_ttl, )
 from .models import Task, Tag
 from .serializers import TaskSerializer, TagSerializer
 
@@ -101,45 +100,62 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__id=tag_id)
         return queryset.distinct()
 
+    def send_task_created_notification(self, task):
+        try:
+            send_task_created_notification.apply_async(args=[task.id], retry=False)
+        except Exception as exc:
+            logger.warning("Failed to send task notification: %s", exc)
+            raise
+
     def perform_create(self, serializer):
         task = serializer.save(owner=self.request.user)
+        # Сразу инкрементируем версию кэша (инвалидация)
+        bump_user_tasks_version(task.owner_id)
 
-        def send_notification():
-            try:
-                send_task_created_notification.apply_async(args=[task.id], retry=False)
-            except Exception as exc:
-                logger.error(
-                    "Failed to send task to Celery for task_id=%s: %s",
-                    task.id,
-                    exc,
-                )
+        try:
+            self.send_task_created_notification(task)
+        except Exception:
+            pass
 
-        transaction.on_commit(send_notification)
+    def perform_update(self, serializer):
+        task = serializer.save()
+        bump_user_tasks_version(task.owner_id)
 
-    @action(detail=False, methods=["get"], url_path="stats")
-    def stats(self, request):
+    def perform_destroy(self, instance):
+        user_id = instance.owner_id
+        instance.delete()
+        bump_user_tasks_version(user_id)
+
+    def list(self, request, *args, **kwargs):
         user = request.user
+        cache_key = generate_tasks_cache_key(user.id, request.query_params)
 
-        orm_stats = Task.objects.filter(owner=user).aggregate(
-            total=models.Count("id"),
-            completed_tasks=models.Count("id", filter=models.Q(completed=True)),
-            active=models.Count("id", filter=models.Q(completed=False)),
-        )
+        cached_data = None
+        try:
+            cached_data = cache.get(cache_key)
+        except Exception as exc:
+            logger.warning("Error reading from the Redis cache: %s", exc)
 
-        raw_query = """
-            SELECT
-                COUNT(*) AS total,
-                COUNT(*) FILTER (WHERE completed = TRUE) AS completed,
-                COUNT(*) FILTER (WHERE completed = FALSE) AS active
-            FROM tasks_task
-            WHERE owner_id = %s;
-        """
+        if cached_data is not None:
+            response = Response(cached_data, status=status.HTTP_200_OK)
+            response["X-Cache"] = "HIT"
+            return response
 
-        with connection.cursor() as cursor:
-            cursor.execute(raw_query, (user.id,))
-            row = cursor.fetchone()
-            raw_stats = {"total": row[0], "completed_tasks": row[1], "active": row[2]}
+        response = super().list(request, *args, **kwargs)
 
-        return Response({"orm": orm_stats, "raw": raw_stats})
+        if response.status_code == status.HTTP_200_OK:
+            try:
+                data_to_cache = (
+                    dict(response.data)
+                    if isinstance(response.data, dict)
+                    else list(response.data)
+                )
+                ttl = get_jittered_ttl(60, 10)
+                cache.set(cache_key, data_to_cache, timeout=ttl)
+            except Exception as exc:
+                logger.warning("Error writing to the Redis cache: %s", exc)
+
+        response["X-Cache"] = "MISS"
+        return response
 
     ordering = ["-created_at"]
