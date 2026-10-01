@@ -175,6 +175,21 @@ LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "Asia/Almaty"
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_CACHE_URL"),
+        "TIMEOUT": 60,
+        "KEY_PREFIX": "tasks_service",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # "IGNORE_EXCEPTIONS": True,
+        },
+    }
+}
+
+# settings.py
+RATELIMIT_ENABLE = False
 
 _broker_url = os.getenv("CELERY_BROKER_URL")
 

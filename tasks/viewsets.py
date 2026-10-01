@@ -1,7 +1,9 @@
 import logging
+from urllib.parse import urlencode
 
+from django.core.cache import cache
 from django.db import models, connection
-from rest_framework import permissions, viewsets, filters
+from rest_framework import permissions, viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -39,6 +41,49 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "priority", "completed", "title"]
     ordering = ["-created_at"]
     search_fields = ["title", "description"]
+
+    def _generate_cache_key(self, user_id: int, query_params) -> str:
+        sorted_params = []
+        for key in sorted(query_params.keys()):
+            for val in sorted(query_params.getlist(key)):
+                sorted_params.append((key, val))
+
+        normalized_query = urlencode(sorted_params)
+        return f"user:{user_id}:tasks:{normalized_query}"
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        cache_key = self._generate_cache_key(user.id, request.query_params)
+
+        cached_data = None
+        try:
+            cached_data = cache.get(cache_key)
+            print(f"DEBUG: GET '{cache_key}' -> found: {cached_data is not None}")
+        except Exception as exc:
+            logger.warning("Ошибка чтения из Redis кэша: %s", exc)
+
+        if cached_data is not None:
+            response = Response(cached_data, status=status.HTTP_200_OK)
+            response["X-Cache"] = "HIT"
+            return response
+
+        response = super().list(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK:
+            try:
+                data_to_cache = (
+                    dict(response.data)
+                    if isinstance(response.data, dict)
+                    else response.data
+                )
+                success = cache.set(cache_key, data_to_cache, timeout=60)
+                print(f"DEBUG: SET '{cache_key}' -> success: {success}")
+            except Exception as exc:
+                print(f"DEBUG EXCEPTION ON SET: {exc}")
+                logger.warning("Ошибка записи в Redis кэш: %s", exc)
+
+        response["X-Cache"] = "MISS"
+        return response
 
     def get_queryset(self):
         queryset = (
@@ -93,4 +138,5 @@ class TaskViewSet(viewsets.ModelViewSet):
             raw_stats = {"total": row[0], "completed_tasks": row[1], "active": row[2]}
 
         return Response({"orm": orm_stats, "raw": raw_stats})
-    ordering = ['-created_at']
+
+    ordering = ["-created_at"]
