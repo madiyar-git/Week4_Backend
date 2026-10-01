@@ -52,7 +52,7 @@ def send_task_created_notification(self, task_id: int):
             self.request.id,
             task.id,
         )
-        raise
+        raise  # RequestException("Сетевая ошибка API")
 
 
 @shared_task(bind=True, max_retries=3, soft_time_limit=10, time_limit=15)

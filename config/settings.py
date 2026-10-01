@@ -11,11 +11,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
 import environ
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,14 +26,15 @@ environ.Env.read_env(env_file=str(BASE_DIR / ".env"))
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-raw_cors_origins = os.getenv(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000"
-)
+raw_allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.railway.app")
+ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts.split(",") if host.strip()]
+raw_cors = os.getenv("CORS_ALLOWED_ORIGINS", "")
 CORS_ALLOWED_ORIGINS = [
-    origin.strip().rstrip("/")
-    for origin in raw_cors_origins.split(",")
-    if origin.strip()
+    origin.strip(" '\"").rstrip("/") for origin in raw_cors.split(",") if origin.strip()
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() in (
     "true",
@@ -56,16 +59,16 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tasks",
-    "rest_framework",  # DRF
-    "drf_spectacular",  # Swagger UI
-    "corsheaders",  # CORS
+    "rest_framework",
+    "drf_spectacular",
+    "corsheaders",
     "accounts",
 ]
 
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # for CORS
-    "django.middleware.common.CommonMiddleware",  # for CORS
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -98,6 +101,10 @@ else:
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
+
+if "pytest" in sys.modules or "test" in sys.argv:
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
 
 ROOT_URLCONF = "config.urls"
 
@@ -208,6 +215,19 @@ CELERY_TASK_PUBLISH_RETRY = False
 CELERY_BROKER_CONNECTION_TIMEOUT = 1.0
 CELERY_BROKER_CONNECTION_MAX_RETRIES = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-expired-tasks-every-5-min": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": 10.0,
+    },
+    "cleanup-expired-tasks-daily-nightly": {
+        "task": "apps.tasks.tasks.cleanup_expired_tasks",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
+
 USE_I18N = True
 
 USE_TZ = True
