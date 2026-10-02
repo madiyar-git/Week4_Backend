@@ -65,8 +65,13 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         task = serializer.save(owner=self.request.user)
-        # Сразу инкрементируем версию кэша (инвалидация)
         bump_user_tasks_version(task.owner_id)
+
+        logger.info(
+            "New task created: tasks ID =%s, users ID =%s",
+            task.id,
+            task.owner_id,
+        )
 
         try:
             self.send_task_created_notification(task)

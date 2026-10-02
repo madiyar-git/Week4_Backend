@@ -31,3 +31,6 @@ celerybeat-schedule*
 
 # NGINX
 static/
+
+# Log
+logs/

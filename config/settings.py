@@ -50,6 +50,68 @@ CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "False").lower() in (
 STATIC_URL = "/static/"
 STATIC_ROOT = "/app/static/"
 
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} [{name}:{lineno}] {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{asctime}] {levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "errors.log",
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console", "error_file"],
+            "level": LOG_LEVEL,
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["console", "error_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console", "error_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console", "error_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "app": {
+            "handlers": ["console", "error_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+    },
+}
+
 # REDIS_URL = os.getenv("REDIS_URL")
 
 # Application definition

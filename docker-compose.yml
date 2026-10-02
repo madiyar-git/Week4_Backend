@@ -12,7 +12,9 @@ services:
       redis:
         condition: service_healthy
     volumes:
+      - .:/app
       - static_volume:/app/static
+      - ./logs:/app/logs
 
   db:
     image: postgres:16
