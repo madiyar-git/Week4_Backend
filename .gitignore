@@ -28,3 +28,6 @@ celerybeat-schedule.dir
 celerybeat-schedule.page
 celerybeat-schedule.bak
 celerybeat-schedule*
+
+# NGINX
+static/

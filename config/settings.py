@@ -47,6 +47,9 @@ CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "False").lower() in (
     "t",
 )
 
+STATIC_URL = "/static/"
+STATIC_ROOT = "/app/static/"
+
 # REDIS_URL = os.getenv("REDIS_URL")
 
 # Application definition
@@ -91,17 +94,17 @@ if DEBUG:
         "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
     }
 
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-else:
-    SECURE_SSL_REDIRECT = False
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
+# if not DEBUG:
+#     SECURE_SSL_REDIRECT = True
+#     SECURE_HSTS_SECONDS = 31536000
+#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+#     SECURE_HSTS_PRELOAD = True
+#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# else:
+#     SECURE_SSL_REDIRECT = False
+#     SECURE_HSTS_SECONDS = 0
+#     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+#     SECURE_HSTS_PRELOAD = False
 
 if "pytest" in sys.modules or "test" in sys.argv:
     SECURE_SSL_REDIRECT = False
