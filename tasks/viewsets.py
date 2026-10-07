@@ -7,11 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.users.tasks import send_task_created_notification
-from services.cache import (
-    generate_tasks_cache_key,
-    get_jittered_ttl,
-)
-
+from services.cache import (generate_tasks_cache_key, get_jittered_ttl, )
 from .models import Tag, Task
 from .serializers import TagSerializer, TaskSerializer
 
@@ -89,7 +85,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy( self, instance ):
-        instance.delete(instance.owner_id)
+        instance.delete()
 
     def list( self, request, *args, **kwargs ):
         user = request.user
