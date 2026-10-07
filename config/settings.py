@@ -13,9 +13,9 @@ environ.Env.read_env(env_file=str(BASE_DIR / ".env"))
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-raw_allowed_hosts = os.getenv("ALLOWED_HOSTS")
+raw_allowed_hosts = os.getenv("ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts.split(",") if host.strip()]
-raw_cors = os.getenv("CORS_ALLOWED_ORIGINS")
+raw_cors = os.getenv("CORS_ALLOWED_ORIGINS", "")
 CORS_ALLOWED_ORIGINS = [origin.strip(" '\"").rstrip("/") for origin in raw_cors.split(",") if origin.strip()]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
