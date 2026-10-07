@@ -13,6 +13,8 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+      - static_volume:/app/static
+      - ./logs:/app/logs
 
   db:
     image: postgres:16
@@ -84,6 +86,20 @@ services:
       - redis
       - celery
 
+  nginx:
+    build:
+      context: ../week3/vue-project
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/app/static
+    depends_on:
+      - web
+
 volumes:
   pgdata:
   redis_data:
+  static_volume:
