@@ -49,7 +49,9 @@ def test_cannot_update_foreign_task(auth_client, other_user):
     payload = {"title": "Change"}
 
     response = auth_client.patch(
-        f"/api/tasks/{foreign_task.id}/", data=payload, format="json"
+        f"/api/tasks/{foreign_task.id}/",
+        data=payload,
+        format="json",
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -17,7 +17,8 @@ class Command(BaseCommand):
         for i in range(1, 101):
             username = f"perf_user_{i}"
             user, created = User.objects.get_or_create(
-                username=username, defaults={"email": f"{username}@example.com"}
+                username=username,
+                defaults={"email": f"{username}@example.com"},
             )
             if created:
                 user.set_password("secure_pass_123")
@@ -33,14 +34,14 @@ class Command(BaseCommand):
                         description=f"Automated benchmarking task generated for user {user.username}.",
                         completed=random.choice([True, False]),
                         owner=user,
-                    )
+                    ),
                 )
         self.stdout.write(
-            f"Generated {len(tasks_to_create)} objects in memory. Executing bulk_create..."
+            f"Generated {len(tasks_to_create)} objects in memory. Executing bulk_create...",
         )
         Task.objects.bulk_create(tasks_to_create, batch_size=1000)
         self.stdout.write(
             self.style.SUCCESS(
-                "Success! Database successfully seeded with 50,000 tasks"
-            )
+                "Success! Database successfully seeded with 50,000 tasks",
+            ),
         )

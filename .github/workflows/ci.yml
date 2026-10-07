@@ -12,6 +12,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  ruff:
+    name: Run Ruff Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff check
+        run: ruff check .
+
   backend:
     runs-on: ubuntu-latest
 

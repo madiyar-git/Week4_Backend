@@ -75,7 +75,9 @@ kombu.exceptions.EncodeError: Object of type User is not JSON serializable
    try:
        send_task_created_notification.apply_async(args=[task.id], retry=False)
    except Exception as exc:
-       logger.error("Не удалось отправить задачу в Celery для task_id=%s: %s", task.id, exc)
+       logger.error(
+           "Не удалось отправить задачу в Celery для task_id=%s: %s", task.id, exc
+       )
    ```
 
 # Celery: Надежность асинхронных задач
@@ -135,36 +137,54 @@ User = get_user_model()
 
 
 @shared_task(
-  bind=True, autoretry_for=(RequestException,), retry_backoff=True, retry_backoff_max=600, retry_jitter=True,
-  max_retries=3, soft_time_limit=10, time_limit=15, )
-def send_welcome_email_idempotent( self, user_id: int ) -> bool:
-  request_id = self.request.id
-  attempt = self.request.retries + 1
-  cache_key = f"welcome_email_sent:{user_id}"
-  
-  # 1. Проверка идемпотентности
-  if cache.get(cache_key):
-    logger.info("Task [%s]: Email already sent to User id=%s. Skipping.", request_id, user_id)
-    return True
-  
-  try:
-    user = User.objects.get(pk=user_id)
-  except User.DoesNotExist:
-    logger.warning("Task [%s]: User id=%s not found.", request_id, user_id)
-    return False
-  
-  logger.info("Task [%s] (Attempt %s/3): Sending welcome email to User id=%s...", request_id, attempt, user_id)
-  
-  try:
-    # Имитация отправки / вызова внешней системы
-    cache.set(cache_key, True, timeout=86400)
-    logger.info("Task [%s]: Email successfully sent to User id=%s", request_id, user_id)
-    return True
-  
-  except Exception as exc:
-    # При ошибке сбрасываем ключ, чтобы ретрай отработал
-    cache.delete(cache_key)
-    raise exc
+    bind=True,
+    autoretry_for=(RequestException,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    max_retries=3,
+    soft_time_limit=10,
+    time_limit=15,
+)
+def send_welcome_email_idempotent(self, user_id: int) -> bool:
+    request_id = self.request.id
+    attempt = self.request.retries + 1
+    cache_key = f"welcome_email_sent:{user_id}"
+
+    # 1. Проверка идемпотентности
+    if cache.get(cache_key):
+        logger.info(
+            "Task [%s]: Email already sent to User id=%s. Skipping.",
+            request_id,
+            user_id,
+        )
+        return True
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        logger.warning("Task [%s]: User id=%s not found.", request_id, user_id)
+        return False
+
+    logger.info(
+        "Task [%s] (Attempt %s/3): Sending welcome email to User id=%s...",
+        request_id,
+        attempt,
+        user_id,
+    )
+
+    try:
+        # Имитация отправки / вызова внешней системы
+        cache.set(cache_key, True, timeout=86400)
+        logger.info(
+            "Task [%s]: Email successfully sent to User id=%s", request_id, user_id
+        )
+        return True
+
+    except Exception as exc:
+        # При ошибке сбрасываем ключ, чтобы ретрай отработал
+        cache.delete(cache_key)
+        raise exc
 ```
 
 # Архитектура фоновых задач (Celery) и SSR/SPA решение

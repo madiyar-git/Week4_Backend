@@ -5,7 +5,9 @@ from rest_framework import status
 
 @patch("tasks.viewsets.send_task_created_notification")
 def test_outer_request(
-    mock_service, auth_client, django_capture_on_commit_callbacks
+    mock_service,
+    auth_client,
+    django_capture_on_commit_callbacks,
 ):
     payload = {"title": "Hello", "priority": "high", "completed": False}
     with django_capture_on_commit_callbacks(execute=True):
@@ -17,7 +19,9 @@ def test_outer_request(
 
 @patch("tasks.viewsets.send_task_created_notification")
 def test_outer_request_failure_returns_201(
-    mock_service, auth_client, django_capture_on_commit_callbacks
+    mock_service,
+    auth_client,
+    django_capture_on_commit_callbacks,
 ):
     mock_service.apply_async.side_effect = Exception("Connection error")
 

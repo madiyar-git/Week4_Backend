@@ -1,5 +1,6 @@
-from tasks.models import Task, Category
-from django.db.models import Q, Count
+from django.db.models import Count, Q
+
+from tasks.models import Task
 
 # Базовые операции
 Task.objects.all()
@@ -12,11 +13,11 @@ Task.objects.filter(id=10).delete()
 # Агрегации
 Task.objects.count()
 Task.objects.filter(completed=True).count()
-Task.objects.values('priority').annotate(count=Count('id'))
+Task.objects.values("priority").annotate(count=Count("id"))
 
 # Q объекты
 Task.objects.filter(Q(priority=3) | Q(completed=False))
 Task.objects.filter(Q(title__icontains="django") & Q(completed=False))
 
 # Сортировка
-Task.objects.order_by('-priority', 'title')
+Task.objects.order_by("-priority", "title")

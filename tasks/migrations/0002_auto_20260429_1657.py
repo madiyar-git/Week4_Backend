@@ -2,15 +2,17 @@
 
 from django.db import migrations
 
+
 def create_default_categories(apps, schema_editor):
-    Category = apps.get_model('tasks', 'Category')
-    Category.objects.create(name='backend', slug='backend')
-    Category.objects.create(name='frontend', slug='frontend')
-    Category.objects.create(name='general', slug='general')
+    Category = apps.get_model("tasks", "Category")
+    Category.objects.create(name="backend", slug="backend")
+    Category.objects.create(name="frontend", slug="frontend")
+    Category.objects.create(name="general", slug="general")
+
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('tasks', '0001_initial'), # имя миграции
+        ("tasks", "0001_initial"),  # имя миграции
     ]
     operations = [
         migrations.RunPython(create_default_categories),

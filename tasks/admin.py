@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Category, Task
 
 
@@ -9,20 +10,28 @@ def make_completed(modeladmin, request, queryset):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'completed', 'priority', 'owner', 'category', 'created_at']
+    list_display = [
+        "id",
+        "title",
+        "completed",
+        "priority",
+        "owner",
+        "category",
+        "created_at",
+    ]
 
-    list_filter = ['completed', 'priority', 'category']
+    list_filter = ["completed", "priority", "category"]
 
-    search_fields = ['title', 'description']
+    search_fields = ["title", "description"]
 
-    list_editable = ['completed', 'priority']
+    list_editable = ["completed", "priority"]
 
-    readonly_fields = ['created_at', 'updated_at']
+    readonly_fields = ["created_at", "updated_at"]
 
     actions = [make_completed]
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
-    list_display = ['id', 'name', 'slug']
+    prepopulated_fields = {"slug": ("name",)}
+    list_display = ["id", "name", "slug"]

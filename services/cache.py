@@ -15,6 +15,7 @@ def get_user_tasks_version(user_id: int) -> int:
             version = 1
     return int(version)
 
+
 def bump_user_tasks_version(user_id: int):
     version_key = f"user:{user_id}:tasks_version"
     try:
@@ -24,6 +25,7 @@ def bump_user_tasks_version(user_id: int):
     except Exception:
         pass
 
+
 def generate_tasks_cache_key(user_id: int, query_params) -> str:
     version = get_user_tasks_version(user_id)
     sorted_params = []
@@ -32,6 +34,7 @@ def generate_tasks_cache_key(user_id: int, query_params) -> str:
             sorted_params.append((key, val))
     normalized_query = urlencode(sorted_params)
     return f"user:{user_id}:v{version}:tasks:{normalized_query}"
+
 
 def get_jittered_ttl(base_ttl: int = 60, jitter: int = 10) -> int:
     return base_ttl + random.randint(-jitter, jitter)

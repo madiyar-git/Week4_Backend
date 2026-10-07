@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-# Create your models here.
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
@@ -54,5 +53,7 @@ class Task(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["owner", "completed"], name="task_owner_completed_idx")
+            models.Index(
+                fields=["owner", "completed"], name="task_owner_completed_idx"
+            ),
         ]

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tasks", "0005_tag_task_tags"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -15,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="task",
             index=models.Index(
-                fields=["owner", "completed"], name="task_owner_completed_idx"
+                fields=["owner", "completed"],
+                name="task_owner_completed_idx",
             ),
         ),
     ]

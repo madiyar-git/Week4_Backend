@@ -1,7 +1,7 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .viewsets import TaskViewSet, TagViewSet
+from .viewsets import TagViewSet, TaskViewSet
 
 router = DefaultRouter()
 router.register("tasks", TaskViewSet, basename="task")
