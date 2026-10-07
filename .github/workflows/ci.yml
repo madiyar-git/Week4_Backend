@@ -29,6 +29,9 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
+      - name: Make manage.py executable
+        run: chmod +x manage.py
+
       - name: Run Ruff check
         run: ruff check .
 
