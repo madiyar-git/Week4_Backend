@@ -1,8 +1,15 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView, )
-from rest_framework_simplejwt.views import (TokenRefreshView, TokenVerifyView, )
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
 from accounts.views import LimiterTokenObtainPairView
 from apps.core.views import HealthCheckView
