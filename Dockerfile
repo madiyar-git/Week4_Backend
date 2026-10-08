@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 
 COPY . .
 
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
