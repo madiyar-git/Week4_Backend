@@ -103,11 +103,7 @@ services:
         condition: service_started
 
   nginx:
-    build:
-      context: ../week3/vue-project
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=/api
+    image: madidas1/vue-project:latest
     container_name: nginx_proxy
     restart: unless-stopped
     ports:
