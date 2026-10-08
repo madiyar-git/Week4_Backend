@@ -1,7 +1,10 @@
+version: '3.8'
+
 services:
   web:
     build: .
     container_name: django_web
+    restart: unless-stopped
     ports:
       - "8001:8000"
     env_file:
@@ -11,14 +14,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/api/health/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     volumes:
       - .:/app
       - static_volume:/app/static
       - ./logs:/app/logs
 
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: postgres_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -34,8 +44,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis_broker
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
     volumes:
       - redis_data:/data
     healthcheck:
@@ -47,6 +56,7 @@ services:
   celery:
     build: .
     container_name: celery_worker
+    restart: unless-stopped
     command: celery -A config worker -l info
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -62,6 +72,8 @@ services:
 
   celery-beat:
     build: .
+    container_name: celery_beat
+    restart: unless-stopped
     command: celery -A config beat -l info
     volumes:
       - .:/app
@@ -70,21 +82,25 @@ services:
     env_file:
       - .env
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   flower:
     build: .
+    container_name: celery_flower
+    restart: unless-stopped
     command: celery -A config flower --port=5555 --basic_auth=admin:adminpass
-    ports:
-      - "5555:5555"
     env_file:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     depends_on:
-      - redis
-      - celery
+      redis:
+        condition: service_healthy
+      celery:
+        condition: service_started
 
   nginx:
     build:
@@ -92,12 +108,15 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=/api
+    container_name: nginx_proxy
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - static_volume:/app/static
     depends_on:
-      - web
+      web:
+        condition: service_healthy
 
 volumes:
   pgdata:

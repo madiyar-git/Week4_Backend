@@ -36,6 +36,7 @@ factory_boy==3.3.3
 Faker==40.37.0
 filelock==4.0.12
 freezegun==1.5.5
+gunicorn==26.2.0
 idna==3.19
 inflection==0.5.1
 iniconfig==2.3.0
