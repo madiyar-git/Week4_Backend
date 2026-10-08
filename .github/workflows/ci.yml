@@ -122,19 +122,27 @@ jobs:
       - name: Build and start Docker stack
         run: docker compose up -d --build
 
-      - name: Give Docker a moment to initialize healthchecks
-        run: sleep 8
-
       - name: Wait for services to become healthy
         run: |
-          echo "Waiting for all containers to be healthy..."
+          echo "Waiting for all containers to be fully healthy..."
           for i in {1..30}; do
-            UNHEALTHY=$(docker compose ps --format json | grep -v '"Health":"healthy"' | grep -v '"Health":""' || true)
-            if [ -z "$UNHEALTHY" ]; then
+            CONTAINERS=$(docker compose ps -q)
+            ALL_HEALTHY=true
+          
+            for cid in $CONTAINERS; do
+              HEALTH_STATUS=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no_healthcheck{{end}}' "$cid")
+              if [ "$HEALTH_STATUS" != "healthy" ] && [ "$HEALTH_STATUS" != "no_healthcheck" ]; then
+                ALL_HEALTHY=false
+                break
+              fi
+            done
+          
+            if [ "$ALL_HEALTHY" = true ] && [ -n "$CONTAINERS" ]; then
               echo "All services are healthy!"
               docker compose ps
               exit 0
             fi
+          
             echo "Waiting... ($i/30)"
             sleep 5
           done
