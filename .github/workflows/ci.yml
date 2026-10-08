@@ -112,8 +112,10 @@ jobs:
       - name: Copy .env.example to .env
         run: cp .env.example .env
 
-      - name: Fix script line endings
+      - name: Fix scripts permissions and line endings
         run: |
+          sed -i 's/\r$//' scripts/*.sh
+          chmod +x scripts/*.sh
           sed -i 's/\r$//' docker-entrypoint.sh
           chmod +x docker-entrypoint.sh
 
