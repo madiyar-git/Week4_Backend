@@ -112,6 +112,11 @@ jobs:
       - name: Copy .env.example to .env
         run: cp .env.example .env
 
+      - name: Fix script line endings
+        run: |
+          sed -i 's/\r$//' docker-entrypoint.sh
+          chmod +x docker-entrypoint.sh
+
       - name: Build and start Docker stack
         run: docker compose up -d --build
 
