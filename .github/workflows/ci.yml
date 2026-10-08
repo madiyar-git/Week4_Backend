@@ -122,6 +122,9 @@ jobs:
       - name: Build and start Docker stack
         run: docker compose up -d --build
 
+      - name: Give Docker a moment to initialize healthchecks
+        run: sleep 8
+
       - name: Wait for services to become healthy
         run: |
           echo "Waiting for all containers to be healthy..."
