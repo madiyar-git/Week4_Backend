@@ -1,8 +1,8 @@
 import json
 
 
-def get_ip_and_username(group, request):
-    ip = request.META.get("REMOTE_ADDR", "127.0.0.1")
+def get_ip_and_username( group, request ):
+    ip = request.META.get("REMOTE_ADDR", "localhost")
     username = "unknown"
     try:
         if hasattr(request, "data"):

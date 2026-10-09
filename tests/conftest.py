@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-from tests.factories import UserFactory, TaskFactory
+from tests.factories import TaskFactory, UserFactory
 
 
 @pytest.fixture(autouse=True)

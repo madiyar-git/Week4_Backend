@@ -18,6 +18,6 @@ def test_task_creation_logging(auth_client, user, caplog):
     assert response.status_code == 201, f"Server`s response: {response.data}"
 
     expected_log_substring = f"users ID ={user.id}"
-    assert any(
-        expected_log_substring in record.message for record in caplog.records
-    ), f"Log not found. Substring expected: '{expected_log_substring}'"
+    assert any(expected_log_substring in record.message for record in caplog.records), (
+        f"Log not found. Substring expected: '{expected_log_substring}'"
+    )

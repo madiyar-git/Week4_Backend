@@ -1,14 +1,19 @@
 import logging
 
 from django.core.cache import cache
-from rest_framework import permissions, viewsets, filters, status
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.users.tasks import send_task_created_notification
-from services.cache import (bump_user_tasks_version, generate_tasks_cache_key, get_jittered_ttl, )
-from .models import Task, Tag
-from .serializers import TaskSerializer, TagSerializer
+from services.cache import (
+    generate_tasks_cache_key,
+    get_jittered_ttl,
+)
+
+from .models import Tag, Task
+from .serializers import TagSerializer, TaskSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +29,20 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
 
-    def get_queryset(self):
+    def get_queryset( self ):
         return Tag.objects.filter(owner=self.request.user)
 
-    def perform_create(self, serializer):
+    def perform_create( self, serializer ):
         serializer.save(owner=self.request.user)
 
 
+@extend_schema_view(
+    list=extend_schema(summary="List tasks", description="Get a list of tasks for the authenticated user."),
+    retrieve=extend_schema(summary="Get task by ID", description="Retrieve a specific task by its ID."),
+    create=extend_schema(summary="Create task", description="Create a new task."),
+    update=extend_schema(summary="Update task", description="Update an existing task."),
+    partial_update=extend_schema(summary="Partial update task", description="Partially update a task."),
+    destroy=extend_schema(summary="Delete task", description="Delete a task."), )
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TaskSerializer
@@ -39,13 +51,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "priority", "completed", "title"]
     ordering = ["-created_at"]
     search_fields = ["title", "description"]
+    lookup_field = "pk"
+    lookup_value_regex = r"\d+"
 
-    def get_queryset(self):
+    def get_queryset( self ):
         queryset = (
-            Task.objects.filter(owner=self.request.user)
-            .select_related("owner", "category")
-            .prefetch_related("tags")
-        )
+            Task.objects.filter(owner=self.request.user).select_related("owner", "category").prefetch_related("tags"))
 
         completed = self.request.query_params.get("completed")
         if completed is not None:
@@ -56,38 +67,31 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__id=tag_id)
         return queryset.distinct()
 
-    def send_task_created_notification(self, task):
+    def send_task_created_notification( self, task ):
         try:
             send_task_created_notification.apply_async(args=[task.id], retry=False)
         except Exception as exc:
             logger.warning("Failed to send task notification: %s", exc)
             raise
 
-    def perform_create(self, serializer):
+    def perform_create( self, serializer ):
         task = serializer.save(owner=self.request.user)
-        bump_user_tasks_version(task.owner_id)
 
         logger.info(
-            "New task created: tasks ID =%s, users ID =%s",
-            task.id,
-            task.owner_id,
-        )
+            "New task created: tasks ID =%s, users ID =%s", task.id, task.owner_id, )
 
         try:
             self.send_task_created_notification(task)
         except Exception:
             pass
 
-    def perform_update(self, serializer):
-        task = serializer.save()
-        bump_user_tasks_version(task.owner_id)
+    def perform_update( self, serializer ):
+        serializer.save()
 
-    def perform_destroy(self, instance):
-        user_id = instance.owner_id
+    def perform_destroy( self, instance ):
         instance.delete()
-        bump_user_tasks_version(user_id)
 
-    def list(self, request, *args, **kwargs):
+    def list( self, request, *args, **kwargs ):
         user = request.user
         cache_key = generate_tasks_cache_key(user.id, request.query_params)
 
@@ -106,11 +110,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         if response.status_code == status.HTTP_200_OK:
             try:
-                data_to_cache = (
-                    dict(response.data)
-                    if isinstance(response.data, dict)
-                    else list(response.data)
-                )
+                data_to_cache = (dict(response.data) if isinstance(response.data, dict) else list(response.data))
                 ttl = get_jittered_ttl(60, 10)
                 cache.set(cache_key, data_to_cache, timeout=ttl)
             except Exception as exc:
@@ -118,5 +118,3 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         response["X-Cache"] = "MISS"
         return response
-
-    ordering = ["-created_at"]

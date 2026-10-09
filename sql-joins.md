@@ -14,8 +14,11 @@ FROM tasks_task
 INNER JOIN tasks_task_tags ON tasks_task.id = tasks_task_tags.task_id
 INNER JOIN tasks_tag ON tasks_task_tags.tag_id = tasks_tag.id;
 ```
+
 ## SQL который генерит ORM
+
 #### Input:
+
 ```commandline
 from django.db import models
 from tasks.models import Task
@@ -30,6 +33,7 @@ print(stats_query)
 ```
 
 #### Output:
+
 ```commandline
     SELECT "tasks_task"."owner_id" AS "owner_id",
         COUNT("tasks_task"."id") AS "total_tasks", 

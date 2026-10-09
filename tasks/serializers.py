@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from .models import Task, Category, Tag
+from .models import Category, Tag, Task
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -28,7 +28,9 @@ class TaskSerializer(serializers.ModelSerializer):
     )
     owner = serializers.ReadOnlyField(source="owner.username")
     tags = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Tag.objects.all(), required=False
+        many=True,
+        queryset=Tag.objects.all(),
+        required=False,
     )
 
     class Meta:
@@ -77,8 +79,8 @@ class TaskSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError(
                     {
-                        "priority": "Invalid priority level. Must be 'low', 'medium', or 'high'."
-                    }
+                        "priority": "Invalid priority level. Must be 'low', 'medium', or 'high'.",
+                    },
                 )
 
         return internal_data

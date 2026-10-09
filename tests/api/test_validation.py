@@ -80,7 +80,11 @@ def test_validate_request_without_required_field_400(auth_client, tasks):
     ],
 )
 def test_validate_different_requests_400(
-    auth_client, method, url, payload, expected_field
+    auth_client,
+    method,
+    url,
+    payload,
+    expected_field,
 ):
     http_method = getattr(auth_client, method)
     response = http_method(url, data=payload, format="json")
